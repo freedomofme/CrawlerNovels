@@ -1,0 +1,8 @@
+/.idea
+main.py
+.DS_Store
+chapter2.py
+/chapter3
+/chapter4
+countries.csv
+link_crawler.pyc
