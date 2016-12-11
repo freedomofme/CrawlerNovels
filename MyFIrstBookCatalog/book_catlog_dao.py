@@ -74,9 +74,9 @@ class BooKCatlogDao:
 
         # record = {'content':{'num': num, 'catlogname': catlogname, 'link': link}}
 
-        if self.catlog_count(name) != len(results):
+        if self.catlog_count(name) != len(results) and len(results) != 0:
             self.clear_content(name)
-            self.db.books.update({'_id': name}, {'$push': {'content': {'$each': results}}}, upsert=True)
+            self.db.books.update({'_id': name}, {'$push': {'content': {'$each': results}, 'updateTime': datetime.utcnow(), 'lastChapter': results[-1]['catlogname']}}, upsert=True)
 
 
     def clear_content(self, name):
