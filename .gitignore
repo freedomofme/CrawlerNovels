@@ -4,5 +4,9 @@ main.py
 chapter2.py
 /chapter3
 /chapter4
+/chapter05
+/chapter06
+/chapter07
 countries.csv
 link_crawler.pyc
+process_test.spec

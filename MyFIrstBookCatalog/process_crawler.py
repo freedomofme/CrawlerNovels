@@ -9,7 +9,7 @@ from downloader import Downloader
 SLEEP_TIME = 1
 
 
-def threaded_crawler(seed_url, delay=1, cache=None, scrape_callback=None, user_agent=None, host=None, proxies=None, num_retries=1, max_threads=10, timeout=20):
+def threaded_crawler(seed_url, delay=2, cache=None, scrape_callback=None, user_agent=None, host=None, proxies=None, num_retries=1, max_threads=10, timeout=20):
     """Crawl using multiple threads
     """
     # the queue of URL's that still need to be crawled
@@ -66,7 +66,10 @@ def threaded_crawler(seed_url, delay=1, cache=None, scrape_callback=None, user_a
 
 
 def process_crawler(args, **kwargs):
+    startTime = time.time()
+
     num_cpus = multiprocessing.cpu_count()
+    num_cpus = max(num_cpus, 2)
     #pool = multiprocessing.Pool(processes=num_cpus)
     print 'Starting {} processes'.format(num_cpus)
     processes = []
@@ -79,6 +82,10 @@ def process_crawler(args, **kwargs):
     for p in processes:
         p.join()
 
+    endTime = time.time()
+    costTime = int(endTime - startTime)
+
+    print str.format("{}hours, {}minutes", costTime /3600, costTime % 3600 / 60)
 
 def normalize(seed_url, link):
     """Normalize this URL by removing hash and adding domain

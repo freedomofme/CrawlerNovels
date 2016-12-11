@@ -8,6 +8,7 @@ from mongo_queue import MongoQueue
 import urlparse
 import re
 import lxml.html
+from bs4 import BeautifulSoup
 from book_list_dao import BooKListDao
 
 class AlexaCallback:
@@ -17,12 +18,16 @@ class AlexaCallback:
         #http://m.benbenwx.com/top/allvisit_1/
         #http://m.moliwenxue.com/top/allvisit_1/
         #http://m.boluoxs.com/top/allvisit_1/
-        self.seed_url = 'http://m.junzige.la/top/allvisit_1/'
+        self.seed_url = 'http://m.junzige.la/top/allvisit_400/'
         self.queue = MongoQueue()
         self.book_data = BooKListDao()
 
     def __call__(self, seed_url, url, html):
         # if url == self.seed_url:
+
+        # if not decode, sometims failed, and arise 'encoding error : input conversion failed due to input error, bytes 0x84 0x31 0x95 0x33.'
+        # so decode manual, and add param 'ignore'
+        html = html.decode('GBK', 'ignore').encode('GBK')
 
         urls = []
         results = []
@@ -31,13 +36,15 @@ class AlexaCallback:
         # filter for links matching our regular expression
         # and self.same_domain(link, seed_url)
         for oneUrl in (self.normalize(seed_url, link) for link in self.get_links(html) if re.search('allvisit_', link)):
-            print oneUrl
+
             if self.same_domain(oneUrl, seed_url) and (oneUrl not in queue or queue[oneUrl] != 2):
                 results.append(oneUrl)
 
 
         # html = lxml.html.tostring(html, pretty_print=True)
         tree = lxml.html.fromstring(html)
+        fixText = lxml.html.tostring(tree, pretty_print=True)
+        tree = lxml.html.fromstring(fixText)
 
         for t in tree.cssselect('ul.xbk'):
             book = []

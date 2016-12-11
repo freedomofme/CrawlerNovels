@@ -12,6 +12,7 @@ from mongo_cache import MongoCache
 # db.webpage.remove()
 # db.books.remove()
 import sys
+import time
 
 list = [1,2,3]
 
@@ -19,10 +20,17 @@ name = '第一章 大 厦'
 print sys.getdefaultencoding()
 print type(name)
 print isinstance(name, str)
-name = unicode(name, "utf-8")
+# http://blog.sina.com.cn/s/blog_6ce9e8870101gqzt.html
+name = unicode(name, "utf-8") # name.decode('utf-8')
 print type(name)
 
 print name[1:]
+time = int(343.43)
+print str.format("{}小时，{}分", time / 3600, time % 3600 / 60)
+# hobby = u'这四个测试'
+# hobby = hobby.encode('gb2312')
+# hobby = hobby.decode('gb2312')
+# print hobby
 
 
 
@@ -30,20 +38,20 @@ print name[1:]
 
 
 
-db = MongoClient().aggregation_example
-db.things.insert({"x": 1, "tags": ["dog", "cat"]})
-db.things.insert({"x": 2, "tags": ["cat"]})
-db.things.insert({"x": 2, "tags": ["mouse", "cat", "dog"]})
-db.things.insert({"x": 3, "tags": []})
-
-temp = db.things.aggregate([
-{"$unwind": "$tags"},
-{"$group": {"_id": "$tags", "count": {"$sum": 1}}},
-{"$sort": {'count':1}}
-])
-
-while (temp.alive):
-    print temp.next()
+# db = MongoClient().aggregation_example
+# db.things.insert({"x": 1, "tags": ["dog", "cat"]})
+# db.things.insert({"x": 2, "tags": ["cat"]})
+# db.things.insert({"x": 2, "tags": ["mouse", "cat", "dog"]})
+# db.things.insert({"x": 3, "tags": []})
+#
+# temp = db.things.aggregate([
+# {"$unwind": "$tags"},
+# {"$group": {"_id": "$tags", "count": {"$sum": 1}}},
+# {"$sort": {'count':1}}
+# ])
+#
+# while (temp.alive):
+#     print temp.next()
 
 # url = "abc"
 # html = "AAAA"

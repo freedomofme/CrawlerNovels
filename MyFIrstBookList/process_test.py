@@ -17,5 +17,5 @@ def main(max_threads = 5):
 
 
 if __name__ == '__main__':
-    max_threads = int(1)
+    max_threads = int(2)
     main(max_threads)

@@ -9,6 +9,7 @@ import urlparse
 import re
 import lxml.html
 import chinese_digit
+import time
 from book_catlog_dao import BooKCatlogDao
 
 class AlexaCallback:
@@ -52,14 +53,21 @@ class AlexaCallback:
         # print len(results)
 
         # html = lxml.html.tostring(html, pretty_print=True)
+
+        # if not decode, sometims failed, and arise 'encoding error : input conversion failed due to input error, bytes 0x84 0x31 0x95 0x33.'
+        # so decode manual, and add param 'ignore'
+        html = html.decode('GBK', 'ignore').encode('GBK')
+
         tree = lxml.html.fromstring(html)
 
         bookname = tree.cssselect('div#maininfo div#info h1')[0].text_content()
         print bookname
 
-        self.book_data.clear_content(bookname)
-
         contentNum = 0
+
+        start = time.time()
+
+        records = []
         for t in tree.cssselect('div#list  dd a'):
             contentNum += 1
             record = {}
@@ -70,18 +78,19 @@ class AlexaCallback:
                 continue
 
             catlogName = t.text_content()
-            record['name'] = catlogName[:]
+            record['catlogname'] = catlogName[:]
             try:
                 record['num'] = chinese_digit.getResultForDigit(catlogName[1: catlogName.find(' ') - 1])
             except:
                 print catlogName[1: catlogName.find(' ') - 1] + 'can not parse number'
                 record['num'] = 0
 
+            records.append(record)
 
-            self.book_data[bookname] = record
+        self.book_data[bookname] = records
 
         print contentNum
-
+        print time.time() - start
 
         return None
 

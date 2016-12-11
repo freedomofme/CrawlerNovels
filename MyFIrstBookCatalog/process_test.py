@@ -29,17 +29,26 @@ def main(max_threads = 5):
 
     urls = []
     while cursor.alive:
-        temp = cursor.next()['link']
+        temp = cursor.next()
+        # print temp
+        try :
+            temp = temp['link']
+        except:
+            print temp
+            print isinstance(temp['_id'], unicode)
+            temp = temp['link']
+
         temp = '/novel' + temp[5:-4] + '/'
         temp = normalize(catlog_callback.seed_url, temp)
         urls.append(temp)
 
     print urls[0]
 
+
     process_crawler(urls, scrape_callback=catlog_callback, cache=cache, max_threads=max_threads, timeout=30, host = 'www.junzige.la', user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.98 Safari/537.36')
 
 
 if __name__ == '__main__':
-    max_threads = int(1)
+    max_threads = int(3)
     main(max_threads)
 

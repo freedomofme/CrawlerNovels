@@ -17,6 +17,12 @@ client = MongoClient('localhost', 27017, connect=False)
         #create collection to store cached webpages,
         # which is the equivalent of a table in a relational database
 db = client.cache
+result = db.books.find({})
+while result.alive:
+    print result.next()['authorLink']
+
+
+
 db.testing.create_index('timestamp', expireAfterSeconds=61)
 
 
@@ -31,9 +37,14 @@ db.testing.create_index('timestamp', expireAfterSeconds=61)
 # db.testing.update({'_id': 'abc'}, {'$push': record}, upsert=True)
 
 # print db.testing.find_one({'_id':'abc', 'content.num': 3})
-record = {'content':{'num': 3,'name':'abcd'}}
-db.testing.update({'_id': 'abc'}, {'$push': record}, upsert=True)
+record = [{'num': 4,'name':'ddd'}, {'num': 5,'name':'eee'}]
+db.testing.update({'_id': 'abc'}, {'$push': {'content': {'$each': record}}}, upsert=True)
 print db.testing.find_one({'_id':'abc', 'content.num': 3})
+
+
+result = db.books.find({})
+
+
 
 temp = db.books.aggregate([
      {'$match': {
@@ -44,16 +55,26 @@ temp = db.books.aggregate([
     #     '$content' : ''
     # }},
     {'$unwind': '$content' },
+    #  {'$match': {
+    #     '_id' : '真武世界'
+    # }},
     #
-    {'$sort': {
-        'content.num': -1
-    }}
+    # {'$sort': {
+    #     'content.num': -1
+    # }}
+    # { '$group': { '_id': '$content.link', 'count': { '$sum': 1 } } }
+
+    {"$group": {"_id": None, "total": {"$sum": 1}}}
 ]
 
 )
 
-while temp.alive:
-    print temp.next()
+num = 0
+
+if temp.alive:
+    print temp.next()['total']
+    num +=1
+print num
 
 
 

@@ -74,6 +74,7 @@ class MongoQueue:
         try:
             self.db.crawl_queue.insert({'_id': url, 'status': self.OUTSTANDING})
         except errors.DuplicateKeyError as e:
+            # print e.details
             pass # this is already in the queue
 
     def pop(self):

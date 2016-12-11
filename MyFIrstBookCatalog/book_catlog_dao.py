@@ -60,19 +60,24 @@ class BooKCatlogDao:
             raise KeyError(name + ' does not exist')
 
 
-    def __setitem__(self, name, result):
+    def __setitem__(self, name, results):
         """Save value for this URL
         """
         #record = {'result': result, 'timestamp': datetime.utcnow()}
 
-        num = result['num']
-        catlogname = result['name']
-        link = result['link']
+        # num = results['num']
+        # catlogname = results['name']
+        # link = results['link']
 
-        # no longer to remove duplications by num because the num is unique
-        # if (self.db.books.find_one({'_id': name, 'content.num': num}) == None):
-        record = {'content':{'num': num, 'catlogname': catlogname, 'link': link}}
-        self.db.books.update({'_id': name}, {'$push': record}, upsert=True)
+        # no longer to remove duplications by num because the num is not unique
+        # if (self.db.books.find_one({'_id': name, 'content.link': link}) == None):
+
+        # record = {'content':{'num': num, 'catlogname': catlogname, 'link': link}}
+
+        if self.catlog_count(name) != len(results):
+            self.clear_content(name)
+            self.db.books.update({'_id': name}, {'$push': {'content': {'$each': results}}}, upsert=True)
+
 
     def clear_content(self, name):
         record = {'content':[]}
@@ -80,3 +85,15 @@ class BooKCatlogDao:
 
     def clear(self):
         self.db.books.drop()
+
+    def catlog_count(self, name):
+        temp = self.db.books.aggregate([
+            {'$match': {'_id' : name}},
+            {'$unwind': '$content' },
+            {"$group": {"_id": None, "count": {"$sum": 1}}}
+        ])
+
+        if temp.alive:
+            return temp.next()['count']
+        else:
+            return -1
