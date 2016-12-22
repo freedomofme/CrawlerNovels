@@ -28,8 +28,9 @@ class MongoQueue:
 
     # possible states of a download
     OUTSTANDING, PROCESSING, COMPLETE = range(3)
+    RETRY_TIMES = 3
 
-    def __init__(self, client=None, timeout=300, expires=timedelta(hours=36)):
+    def __init__(self, client=None, timeout=300, expires=timedelta(hours=2)):
         """
         host: the host to connect to MongoDB
         port: the port to connect to MongoDB
@@ -77,6 +78,17 @@ class MongoQueue:
             # print e.details
             pass # this is already in the queue
 
+    def pushAll(self, urls):
+        """Add new URL to queue if does not exist
+        """
+        records = []
+        for url in urls:
+            records.append({'_id': url, 'status': self.OUTSTANDING})
+        try:
+            self.db.crawl_queue.insert(records)
+        except errors.DuplicateKeyError as e:
+            pass # this is already in the queue
+
     def pop(self):
         """Get an outstanding URL from the queue and set its status to processing.
         If the queue is empty a KeyError exception is raised.
@@ -104,7 +116,7 @@ class MongoQueue:
 
         if (record.has_key('retry')):
             print('has_key(\'retry\')')
-            if (record['retry'] <= 3):
+            if (record['retry'] <= self.RETRY_TIMES):
                 self.db.crawl_queue.update({'_id': url}, {'$set': {'status': self.OUTSTANDING, 'retry':record['retry'] + 1}})
             else:
                 self.db.crawl_queue.update({'_id': url}, {'$set': {'status': self.COMPLETE, 'retry': 999}})

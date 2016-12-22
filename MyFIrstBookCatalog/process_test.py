@@ -7,6 +7,8 @@ from mongo_queue import MongoQueue
 from alexa_cb import AlexaCallback
 from pymongo import MongoClient
 import urlparse
+from datetime import datetime
+import time
 
 def normalize(seed_url, link):
     """Normalize this URL by removing hash and adding domain
@@ -18,7 +20,6 @@ def main(max_threads = 5):
     catlog_callback = AlexaCallback()
     cache = MongoCache()
     queue = MongoQueue()
-    queue.repairFast()
 
 
     client = MongoClient('localhost', 27017, connect=False)
@@ -30,25 +31,35 @@ def main(max_threads = 5):
     urls = []
     while cursor.alive:
         temp = cursor.next()
-        # print temp
-        try :
-            temp = temp['link']
-        except:
-            print temp
-            print isinstance(temp['_id'], unicode)
-            temp = temp['link']
+        temp = temp['link']
 
-        temp = '/novel' + temp[5:-4] + '/'
-        temp = normalize(catlog_callback.seed_url, temp)
+        if urlparse.urlparse(catlog_callback.seed_url).netloc == 'www.junzige.la':
+            temp = '/novel' + temp[5:-4] + '/'
+            temp = normalize(catlog_callback.seed_url, temp)
+        elif urlparse.urlparse(catlog_callback.seed_url).netloc == 'www.boluoxs.com':
+            temp = 'http://www.boluoxs.com/biquge/0/' + temp[temp.rfind('/') + 1 :temp.rfind('.')] + '/'
+
+        print temp
         urls.append(temp)
 
     print urls[0]
 
+    while True:
+        now = datetime.now()
 
-    process_crawler(urls, scrape_callback=catlog_callback, cache=cache, max_threads=max_threads, timeout=30, host = 'www.junzige.la', user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.98 Safari/537.36')
+        if now.hour < 3 or now.hour > 12:
+            queue.repairFast()
+            process_crawler(urls, scrape_callback=catlog_callback, cache=cache, max_threads=max_threads, timeout=30, host = urlparse.urlparse(catlog_callback.seed_url).netloc, user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.98 Safari/537.36')
+            # every time finished, clear the job queue
+            queue.clear()
+        else:
+            print 'pass:' + str(now)
+            pass
+        time.sleep(3600)
+
 
 
 if __name__ == '__main__':
-    max_threads = int(3)
+    max_threads = int(5)
     main(max_threads)
 

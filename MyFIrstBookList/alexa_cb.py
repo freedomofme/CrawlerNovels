@@ -18,11 +18,15 @@ class AlexaCallback:
         #http://m.benbenwx.com/top/allvisit_1/
         #http://m.moliwenxue.com/top/allvisit_1/
         #http://m.boluoxs.com/top/allvisit_1/
-        self.seed_url = 'http://m.junzige.la/top/allvisit_400/'
+        self.seed_url = 'http://m.boluoxs.com/top/allvisit_1/'
         self.queue = MongoQueue()
         self.book_data = BooKListDao()
 
-    def __call__(self, seed_url, url, html):
+    def __call__(self, url, html):
+        if html == '':
+            print 'empty html from downloader'
+            raise Exception("empty html")
+            # return None
         # if url == self.seed_url:
 
         # if not decode, sometims failed, and arise 'encoding error : input conversion failed due to input error, bytes 0x84 0x31 0x95 0x33.'
@@ -35,13 +39,15 @@ class AlexaCallback:
 
         # filter for links matching our regular expression
         # and self.same_domain(link, seed_url)
-        for oneUrl in (self.normalize(seed_url, link) for link in self.get_links(html) if re.search('allvisit_', link)):
+        for oneUrl in (self.normalize(self.seed_url, link) for link in self.get_links(html) if re.search('allvisit_', link)):
 
-            if self.same_domain(oneUrl, seed_url) and (oneUrl not in queue or queue[oneUrl] != 2):
+            if self.same_domain(oneUrl, self.seed_url) and (oneUrl not in queue or queue[oneUrl] != 2):
                 results.append(oneUrl)
 
+        # sometimes needs to revome the following codes
+        html = html.replace('''"/>
+    <meta property=''', '')
 
-        # html = lxml.html.tostring(html, pretty_print=True)
         tree = lxml.html.fromstring(html)
         fixText = lxml.html.tostring(tree, pretty_print=True)
         tree = lxml.html.fromstring(fixText)
@@ -51,7 +57,8 @@ class AlexaCallback:
             name = None
             for index, tag in enumerate(t.cssselect('li.tjxs > span')):
                 if index == 0:
-                    book.append(tag.cssselect('a')[0].attrib['href'])
+                    templink = tag.cssselect('a')[0].attrib['href']
+                    book.append(self.normalize(self.seed_url, templink))
                     name = tag.cssselect('a')[0].text_content()
                     # print name
                     # print tag.cssselect('a')[0].text_content()

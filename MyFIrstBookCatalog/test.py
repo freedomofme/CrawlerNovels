@@ -35,6 +35,9 @@ print str.format("{}小时，{}分", time / 3600, time % 3600 / 60)
 
 
 
+temp = 'http://m.boluoxs.com/book/420.html'
+print temp[temp.rfind('/'):temp.rfind('.')]
+
 
 
 

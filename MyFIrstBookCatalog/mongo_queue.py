@@ -28,8 +28,9 @@ class MongoQueue:
 
     # possible states of a download
     OUTSTANDING, PROCESSING, COMPLETE = range(3)
+    RETRY_TIMES = 3
 
-    def __init__(self, client=None, timeout=300, expires=timedelta(hours=8)):
+    def __init__(self, client=None, timeout=300, expires=timedelta(hours=6)):
         """
         host: the host to connect to MongoDB
         port: the port to connect to MongoDB
@@ -115,7 +116,7 @@ class MongoQueue:
 
         if (record.has_key('retry')):
             print('has_key(\'retry\')')
-            if (record['retry'] <= 3):
+            if (record['retry'] <= self.RETRY_TIMES):
                 self.db.cotlog_queue.update({'_id': url}, {'$set': {'status': self.OUTSTANDING, 'retry':record['retry'] + 1}})
             else:
                 self.db.cotlog_queue.update({'_id': url}, {'$set': {'status': self.COMPLETE, 'retry': 999}})

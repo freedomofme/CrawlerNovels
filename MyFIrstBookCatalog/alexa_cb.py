@@ -19,10 +19,13 @@ class AlexaCallback:
         #http://m.benbenwx.com/top/allvisit_1/
         #http://m.moliwenxue.com/top/allvisit_1/
         #http://m.boluoxs.com/top/allvisit_1/
+        #self.seed_url = 'http://m.junzige.la/top/allvisit_400/'
+
         self.urls = []
 
 
-        self.seed_url = 'http://www.junzige.la/'
+        # self.seed_url = 'http://www.junzige.la/'
+        self.seed_url = 'http://www.boluoxs.com/'
         self.queue = MongoQueue()
         self.book_data = BooKCatlogDao()
 
@@ -56,9 +59,55 @@ class AlexaCallback:
 
         # if not decode, sometims failed, and arise 'encoding error : input conversion failed due to input error, bytes 0x84 0x31 0x95 0x33.'
         # so decode manual, and add param 'ignore'
-        html = html.decode('GBK', 'ignore').encode('GBK')
+        # html = html.decode('GBK', 'ignore').encode('GBK')
+        html = html.decode('GBK', 'ignore')
+        # print html
 
         tree = lxml.html.fromstring(html)
+
+        if urlparse.urlparse(self.seed_url).netloc == 'www.boluoxs.com':
+            self.boluoxs(html, tree)
+        elif urlparse.urlparse(self.seed_url).netloc == 'www.junzige.la':
+            self.junzige(tree)
+
+        return None
+
+    def boluoxs(self, html, tree):
+        bookname = tree.cssselect('span.egf h1')[0].text_content()
+        print bookname
+
+        contentNum = 0
+
+        start = time.time()
+
+        records = []
+        for t in tree.cssselect('div.article_texttitleb a'):
+            contentNum += 1
+            record = {}
+
+            if 'href' in t.attrib.keys():
+                record['link'] = t.attrib['href']
+            else:
+                continue
+
+            catlogName = t.text_content()
+
+            record['catlogname'] = catlogName[:]
+            try:
+                record['num'] = chinese_digit.getResultForDigit(catlogName[1: catlogName.find(' ') - 1])
+            except:
+                print catlogName[1: catlogName.find(' ') - 1] + 'can not parse number'
+                record['num'] = 0
+
+            records.append(record)
+
+        self.book_data[bookname] = records
+
+        print contentNum
+        print time.time() - start
+
+
+    def junzige(self, tree):
 
         bookname = tree.cssselect('div#maininfo div#info h1')[0].text_content()
         print bookname
@@ -91,8 +140,6 @@ class AlexaCallback:
 
         print contentNum
         print time.time() - start
-
-        return None
 
     def normalize(self, seed_url, link):
         """Normalize this URL by removing hash and adding domain

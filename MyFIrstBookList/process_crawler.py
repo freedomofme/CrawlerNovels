@@ -9,14 +9,20 @@ from downloader import Downloader
 SLEEP_TIME = 1
 
 
-def threaded_crawler(seed_url, delay=2, cache=None, scrape_callback=None, user_agent=None, host=None, proxies=None, num_retries=1, max_threads=10, timeout=20):
+def threaded_crawler(seed_url, delay=2, cache=None, scrape_callback=None, user_agent=None, host=None, proxies=None, num_retries=1, max_threads=5, timeout=20):
     """Crawl using multiple threads
     """
     # the queue of URL's that still need to be crawled
     print 'threaded_crawler'
     crawl_queue = MongoQueue()
     # crawl_queue.clear()
-    crawl_queue.push(seed_url)
+
+    if isinstance(seed_url,list):
+        crawl_queue.pushAll(seed_url)
+        seed_url = seed_url[0]
+    else:
+        crawl_queue.push(seed_url)
+
     D = Downloader(cache=cache, delay=delay, user_agent=user_agent, host = host,proxies=proxies, num_retries=num_retries, timeout=timeout)
 
     def process_queue():
@@ -31,7 +37,7 @@ def threaded_crawler(seed_url, delay=2, cache=None, scrape_callback=None, user_a
                 html = D(url)
                 if scrape_callback:
                     try:
-                        links = scrape_callback(seed_url, url, html) or []
+                        links = scrape_callback(url, html) or []
                         crawl_queue.complete(url)
                     except Exception as e:
                         crawl_queue.repush(url)
@@ -46,6 +52,7 @@ def threaded_crawler(seed_url, delay=2, cache=None, scrape_callback=None, user_a
 
     # wait for all download threads to finish
     threads = []
+    print 'start run'
     while threads or crawl_queue:
         for thread in threads:
             if not thread.is_alive():

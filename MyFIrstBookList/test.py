@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 from pymongo import MongoClient
 from datetime import datetime
+import time
+import urlparse
 from mongo_cache import MongoCache
 
 # client = MongoClient('localhost', 27017)
@@ -11,15 +13,25 @@ from mongo_cache import MongoCache
 # db.webpage.remove()
 # db.books.remove()
 
+text = '''<span class="">���ߣ�<a href="/author/½˫��">½˫��</a></span>
+                <span class="">    "/>
+    <meta property=
+...</span>
+'''
+
+print text.replace('''"/>
+    <meta property=''', '')
 
 
+print urlparse.urlparse('http://m.boluoxs.com/top/allvisit_400/').netloc
 client = MongoClient('localhost', 27017, connect=False)
         #create collection to store cached webpages,
         # which is the equivalent of a table in a relational database
 db = client.cache
 result = db.books.find({})
-while result.alive:
-    print result.next()['authorLink']
+while result.alive :
+    print result.next()['intro']
+
 
 
 
