@@ -26,7 +26,7 @@ class Downloader:
 
     def __call__(self, url):
         result = None
-        # not need cache Huang
+        # not need cache
         #
         # if self.cache:
         #     try:

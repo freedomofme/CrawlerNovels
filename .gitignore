@@ -10,3 +10,7 @@ chapter2.py
 countries.csv
 link_crawler.pyc
 process_test.spec
+/MyFIrstBookList/test.py
+/MyFIrstBookCatalog/test.py
+/MyFIrstBookList/*.pyc
+/MyFIrstBookCatalog/*.pyc
